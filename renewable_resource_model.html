@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sustainable Renewable Resource Model</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #d4edda 0%, #84ad8a 50%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container {
+            background: rgba(255, 255, 255, 1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            background: linear-gradient(135deg, #d4edda 0%, #84ad8a 50%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 15px;
+        }
+        
+        .control-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        label {
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #2c3e50;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            margin: 5px 0;
+            accent-color: #667eea;
+        }
+        
+        .value-display {
+            font-size: 0.9em;
+            color: #666;
+            text-align: center;
+            margin-top: 5px;
+        }
+        
+        button {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: bold;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .charts {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .chart-container-1 {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            width: 500px;
+            height: 380px;
+            grid-column: 0;
+            grid-row: 1;
+        }
+
+        .chart-container-2 {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            width: 500px;
+            height: 380px;
+            grid-column: 1;
+            grid-row: 1;
+        }
+
+        .chart-container-3 {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            width: 1085px;
+            height: 580px;
+            grid-column: 1/3;
+            grid-row: 2;
+
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            display: block;
+        }
+        
+        .chart {
+            width: 100%;
+            height: 300px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            background: #fafafa;
+        }
+        
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .metric {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .metric-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .metric-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+        
+        .status {
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            font-weight: bold;
+            text-align: center;
+        }
+        
+        .sustainable { background: #d4edda; color: #155724; }
+        .warning { background: #fff3cd; color: #856404; }
+        .unsustainable { background: #f8d7da; color: #721c24; }
+        
+        @media (max-width: 768px) {
+            .charts {
+                grid-template-columns: 1fr;
+            }
+            .controls {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌱 Sustainable Resource Model</h1>
+        
+        <div class="controls">
+            <div class="control-group">
+                <label for="capacity">Carrying Capacity</label>
+                <input type="range" id="capacity" min="500" max="2000" value="1000">
+                <div class="value-display" id="capacity-value">1000</div>
+            </div>
+            
+            <div class="control-group">
+                <label for="growthRate">Growth Rate</label>
+                <input type="range" id="growthRate" min="0.01" max="0.20" step="0.01" value="0.2">
+                <div class="value-display" id="growth-value">0.05</div>
+            </div>
+            
+            <div class="control-group">
+                <label for="consumptionRate">Consumption Rate</label>
+                <input type="range" id="consumptionRate" min="10" max="200" value="150">
+                <div class="value-display" id="consumption-value">50</div>
+            </div>
+            
+            <div class="control-group">
+                <label for="initial">Initial Resource</label>
+                <input type="range" id="initial" min="100" max="1500" value="1500">
+                <div class="value-display" id="initial-value">500</div>
+            </div>
+        </div>
+        
+        <button onclick="runSimulation()">🚀 Run Simulation</button>
+        <br /><br />
+        
+        <div class="charts">
+            <div class="chart-container-1">
+                <h3>Resource Over Time</h3>
+                <canvas class="chart" id="resourceChart"></canvas>
+            </div>
+            
+            <div class="chart-container-2">
+                <h3>Regeneration vs Consumption</h3>
+                <canvas class="chart" id="ratesChart"></canvas>
+            </div>
+
+            <div class="chart-container-3">
+                <canvas id="chart"></canvas>
+            </div>
+        </div>
+        
+        <div class="metrics">
+            <div class="metric">
+                <div class="metric-value" id="finalResource">0</div>
+                <div class="metric-label">Final Resource</div>
+            </div>
+            
+            <div class="metric">
+                <div class="metric-value" id="equilibrium">0</div>
+                <div class="metric-label">Equilibrium Point</div>
+            </div>
+            
+            <div class="metric">
+                <div class="metric-value" id="efficiency">0%</div>
+                <div class="metric-label">Resource Efficiency</div>
+            </div>
+            
+            <div class="metric">
+                <div class="metric-value" id="sustainability">0</div>
+                <div class="metric-label">Years Sustainable</div>
+            </div>
+        </div>
+        
+        <div class="status" id="sustainabilityStatus"></div>
+    </div>
+
+    <script>
+        // Simple Renewable Resource Sustainability Model
+        class RenewableResourceModel {
+            constructor(capacity, growthRate, consumptionRate, initialResource) {
+                this.K = capacity;           // Carrying capacity
+                this.r = growthRate;         // Growth rate
+                this.c = consumptionRate;    // Consumption rate
+                this.N0 = initialResource;   // Initial resource amount
+                this.timeSteps = 200;        // Simulation length
+                this.dt = 0.1;               // Time step
+                
+                this.reset();
+            }
+            
+            reset() {
+                this.time = [];
+                this.resource = [];
+                this.growthRates = [];
+                this.consumption = [];
+                this.N = this.N0;
+                
+                this.time.push(0);
+                this.resource.push(this.N);
+                this.growthRates.push(0);
+                this.consumption.push(0);
+            }
+            
+            // Logistic growth function
+            logisticGrowth(N) {
+                return this.r * N * (1 - N / this.K);
+            }
+            
+            // Sustainable consumption using logistic function
+            sustainableConsumption(N) {
+                // Consumption follows logistic curve, scaled by consumption rate
+                const maxConsumption = this.c;
+                const midpoint = this.K * 0.6; // Optimal consumption point
+                const steepness = 0.01;
+                
+                // Logistic consumption curve
+                return maxConsumption / (1 + Math.exp(-steepness * (N - midpoint)));
+            }
+            
+            step() {
+                const growth = this.logisticGrowth(this.N);
+                const consumption = this.sustainableConsumption(this.N);
+                
+                // Update resource using differential equation
+                const dN = (growth - consumption) * this.dt;
+                this.N = Math.max(0, this.N + dN);
+                
+                // Record data
+                const currentTime = this.time[this.time.length - 1] + this.dt;
+                this.time.push(currentTime);
+                this.resource.push(this.N);
+                this.growthRates.push(growth);
+                this.consumption.push(consumption);
+                
+                return this.N;
+            }
+            
+            simulate() {
+                this.reset();
+                
+                for (let i = 0; i < this.timeSteps; i++) {
+                    this.step();
+                    
+                    // Stop if resource is depleted
+                    if (this.N < 1) break;
+                }
+                
+                return {
+                    time: this.time,
+                    resource: this.resource,
+                    growthRates: this.growthRates,
+                    consumption: this.consumption
+                };
+            }
+            
+            findEquilibrium() {
+                // Find where growth equals consumption
+                for (let N = 1; N <= this.K; N++) {
+                    const growth = this.logisticGrowth(N);
+                    const consumption = this.sustainableConsumption(N);
+                    
+                    if (Math.abs(growth - consumption) < 0.1) {
+                        return N;
+                    }
+                }
+                return 0;
+            }
+            
+            calculateSustainabilityMetrics(data) {
+                const finalResource = data.resource[data.resource.length - 1];
+                const equilibrium = this.findEquilibrium();
+                const efficiency = (finalResource / this.K * 100).toFixed(1);
+                
+                // Count years resource stays above 10% of capacity
+                let sustainableYears = 0;
+                const threshold = this.K * 0.1;
+                
+                for (let i = 0; i < data.resource.length; i++) {
+                    if (data.resource[i] > threshold) {
+                        sustainableYears = data.time[i];
+                    } else {
+                        break;
+                    }
+                }
+                
+                return {
+                    finalResource: Math.round(finalResource),
+                    equilibrium: Math.round(equilibrium),
+                    efficiency: efficiency,
+                    sustainableYears: sustainableYears.toFixed(1)
+                };
+            }
+        }
+        
+        // Chart drawing functions
+        function drawChart(canvas, data, title, color = '#667eea') {
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width;
+            const height = canvas.height;
+            
+            ctx.clearRect(0, 0, width, height);
+            
+            if (!data.x || !data.y || data.x.length === 0) return;
+            
+            // Find data bounds
+            const minX = Math.min(...data.x);
+            const maxX = Math.max(...data.x);
+            const minY = Math.min(...data.y, 0);
+            const maxY = Math.max(...data.y);
+            
+            const padding = 40;
+            
+            // Draw axes
+            ctx.strokeStyle = '#ddd';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(padding, height - padding);
+            ctx.lineTo(width - padding, height - padding);
+            ctx.moveTo(padding, padding);
+            ctx.lineTo(padding, height - padding);
+            ctx.stroke();
+            
+            // Draw data
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            
+            for (let i = 0; i < data.x.length; i++) {
+                const x = padding + ((data.x[i] - minX) / (maxX - minX)) * (width - 2 * padding);
+                const y = height - padding - ((data.y[i] - minY) / (maxY - minY)) * (height - 2 * padding);
+                
+                if (i === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            }
+            ctx.stroke();
+            
+            // Add labels
+            ctx.fillStyle = '#333';
+            ctx.font = '12px Arial';
+            ctx.fillText('0', padding - 10, height - padding + 15);
+            ctx.fillText(maxY.toFixed(0), padding - 30, padding + 5);
+            ctx.fillText(maxX.toFixed(0), width - padding, height - padding + 15);
+        }
+        
+        function drawMultiChart(canvas, datasets) {
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width;
+            const height = canvas.height;
+            
+            ctx.clearRect(0, 0, width, height);
+            
+            if (!datasets[0] || !datasets[0].x) return;
+            
+            // Find global bounds
+            let minX = Infinity, maxX = -Infinity;
+            let minY = Infinity, maxY = -Infinity;
+            
+            datasets.forEach(data => {
+                minX = Math.min(minX, ...data.x);
+                maxX = Math.max(maxX, ...data.x);
+                minY = Math.min(minY, ...data.y, 0);
+                maxY = Math.max(maxY, ...data.y);
+            });
+            
+            const padding = 40;
+            
+            // Draw axes
+            ctx.strokeStyle = '#ddd';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(padding, height - padding);
+            ctx.lineTo(width - padding, height - padding);
+            ctx.moveTo(padding, padding);
+            ctx.lineTo(padding, height - padding);
+            ctx.stroke();
+            
+            // Draw each dataset
+            datasets.forEach((data, index) => {
+                ctx.strokeStyle = data.color;
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                
+                for (let i = 1; i < data.x.length; i++) {
+                    const x = padding + ((data.x[i] - minX) / (maxX - minX)) * (width - 2 * padding);
+                    const y = height - padding - ((data.y[i] - minY) / (maxY - minY)) * (height - 2 * padding);
+                    
+                    if (i === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                }
+                ctx.stroke();
+                
+                // Legend
+                ctx.fillStyle = data.color;
+                ctx.fillRect(width - 150, 20 + index * 20, 15, 10);
+                ctx.fillStyle = '#333';
+                ctx.font = '12px Arial';
+                ctx.fillText(data.label, width - 130, 30 + index * 20);
+            });
+        }
+        
+        let model;
+        let chart = null;        
+
+        function updateDisplayValues() {
+            document.getElementById('capacity-value').textContent = document.getElementById('capacity').value;
+            document.getElementById('growth-value').textContent = document.getElementById('growthRate').value;
+            document.getElementById('consumption-value').textContent = document.getElementById('consumptionRate').value;
+            document.getElementById('initial-value').textContent = document.getElementById('initial').value;
+        }
+        
+        function runSimulation() {
+            const capacity = parseFloat(document.getElementById('capacity').value);
+            const growthRate = parseFloat(document.getElementById('growthRate').value);
+            const consumptionRate = parseFloat(document.getElementById('consumptionRate').value);
+            const initial = parseFloat(document.getElementById('initial').value);
+            
+            model = new RenewableResourceModel(capacity, growthRate, consumptionRate, initial);
+            const data = model.simulate();
+            
+            // Draw charts
+            const resourceCanvas = document.getElementById('resourceChart');
+            resourceCanvas.width = resourceCanvas.clientWidth;
+            resourceCanvas.height = resourceCanvas.clientHeight;
+            
+            drawChart(resourceCanvas, {
+                x: data.time,
+                y: data.resource
+            }, 'Resource resource', '#667eea');
+            
+            const ratesCanvas = document.getElementById('ratesChart');
+            ratesCanvas.width = ratesCanvas.clientWidth;
+            ratesCanvas.height = ratesCanvas.clientHeight;
+            
+            drawMultiChart(ratesCanvas, [
+                {
+                    x: data.time,
+                    y: data.growthRates,
+                    color: '#28a745',
+                    label: '🌱 Regeneration'
+                },
+                {
+                    x: data.time,
+                    y: data.consumption,
+                    color: '#dc3545',
+                    label: '🛒 Consumption'
+                }
+            ]);
+
+            // Draw chart
+
+            // Create or update chart
+            const ctx = document.getElementById('chart').getContext('2d');
+            
+            if (chart) {
+                chart.destroy();
+            }
+
+            data.growthRates.shift();
+            data.consumption.shift();
+            
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.time.map((y) => Math.round(y)),
+                    datasets: [{
+                        label: 'Regeneration',
+                        data: data.growthRates,
+                        borderColor: '#28a745',
+                        backgroundColor: 'rgba(78, 205, 196, 0.1)',
+                        tension: 0.1,
+                        yAxisID: 'y',
+                        borderWidth: 1
+                    }, {
+                        label: 'Consumption',
+                        data: data.consumption,
+                        borderColor: '#dc3545',
+                        backgroundColor: 'rgba(243, 156, 18, 0.1)',
+                        tension: 0.1,
+                        yAxisID: 'y',
+                        borderWidth: 1
+                    }, {
+                        label: 'Resource',
+                        data: data.resource,
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(255, 206, 84, 0.1)',
+                        tension: 0.1,
+                        yAxisID: 'y',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Resource consumption and Regeneration Over Time',
+                            color: '#333',
+                            font: {
+                                size: 16,
+                                weight: 'bold'
+                            }
+                        },
+                        legend: {
+                            labels: {
+                                color: '#333'
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            display: true,
+                            title: {
+                                display: true,
+                                text: 'Years',
+                                color: '#333'
+                            },
+                            ticks: {
+                                color: '#333'
+                            }
+                        },
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'Resources & Regeneration',
+                                color: '#333'
+                            },
+                            ticks: {
+                                color: '#333'
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: 'Consumption',
+                                color: '#e74c3c'
+                            },
+                            ticks: {
+                                color: '#e74c3c'
+                            },
+                            grid: {
+                                drawOnChartArea: false,
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Update metrics
+            const metrics = model.calculateSustainabilityMetrics(data);
+            document.getElementById('finalResource').textContent = metrics.finalResource;
+            document.getElementById('equilibrium').textContent = metrics.equilibrium;
+            document.getElementById('efficiency').textContent = metrics.efficiency + '%';
+            document.getElementById('sustainability').textContent = metrics.sustainableYears;
+            
+            // Update status
+            const status = document.getElementById('sustainabilityStatus');
+            if (metrics.finalResource > capacity * 0.5) {
+                status.className = 'status sustainable';
+                status.textContent = '✅ Resource use is sustainable! The resource remains stable.';
+            } else if (metrics.finalResource > capacity * 0.1) {
+                status.className = 'status warning';
+                status.textContent = '⚠️ Resource use is marginally sustainable. Consider reducing consumption.';
+            } else {
+                status.className = 'status unsustainable';
+                status.textContent = '❌ Resource use is unsustainable! The resource is being depleted.';
+            }
+        }
+        
+        // Event listeners
+        document.getElementById('capacity').addEventListener('input', updateDisplayValues);
+        document.getElementById('growthRate').addEventListener('input', updateDisplayValues);
+        document.getElementById('consumptionRate').addEventListener('input', updateDisplayValues);
+        document.getElementById('initial').addEventListener('input', updateDisplayValues);
+        
+        // Initialize
+        updateDisplayValues();
+        runSimulation();
+    </script>
+</body>
+</html>

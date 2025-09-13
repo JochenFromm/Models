@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Energy-Resource-Pollution Model</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .subtitle {
+            text-align: center;
+            margin-bottom: 30px;
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+        .flow-diagram {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 20px 0;
+            font-size: 1.2em;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+        }
+        .flow-item {
+            padding: 10px 20px;
+            margin: 0 10px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: bold;
+        }
+        .resources { background: rgba(78, 205, 196, 0.3); }
+        .energy { background: rgba(255, 206, 84, 0.3); }
+        .pollution { background: rgba(255, 107, 107, 0.3); }
+        .arrow {
+            font-size: 1.5em;
+            margin: 0 10px;
+            opacity: 0.8;
+        }
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .control-group {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+        input[type="range"] {
+            width: 100%;
+            margin-bottom: 5px;
+        }
+        .value-display {
+            font-size: 0.85em;
+            opacity: 0.9;
+        }
+        button {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: bold;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            display: block;
+            margin: 20px auto;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+        #chartContainer {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .stat-card {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .stat-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .explanation {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            font-size: 0.95em;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⚡ Resource → Energy → Pollution Model</h1>
+        <div class="subtitle">How Non-Renewable Resources Become Pollution Through Energy Generation</div>
+        
+        <div class="flow-diagram">
+            <div class="flow-item resources">Non-Renewable Resources</div>
+            <div class="arrow">→</div>
+            <div class="flow-item energy">Energy Production</div>
+            <div class="arrow">→</div>
+            <div class="flow-item pollution">Accumulated Pollution</div>
+        </div>
+        
+        <div class="controls">
+            <div class="control-group">
+                <label for="initialResources">Initial Resources</label>
+                <input type="range" id="initialResources" min="1000" max="100000" step="100" value="2000">
+                <div class="value-display" id="resourcesDisplay">2000 units</div>
+            </div>
+            
+            <div class="control-group">
+                <label for="energyDemand">Initial Energy Demand</label>
+                <input type="range" id="energyDemand" min="5" max="100" step="5" value="50">
+                <div class="value-display" id="demandDisplay">50 units/year</div>
+            </div>
+            
+            <div class="control-group">
+                <label for="growthRate">Energy Demand Growth</label>
+                <input type="range" id="growthRate" min="0.01" max="1.0" step="0.01" value="0.03">
+                <div class="value-display" id="growthDisplay">3.0% per year</div>
+            </div>
+            
+            <div class="control-group">
+                <label for="efficiency">Resource-to-Energy Efficiency</label>
+                <input type="range" id="efficiency" min="0.1" max="0.9" step="0.05" value="0.3">
+                <div class="value-display" id="efficiencyDisplay">30% efficient</div>
+            </div>
+            
+            <div class="control-group">
+                <label for="pollutionRate">Pollution per Energy Unit</label>
+                <input type="range" id="pollutionRate" min="0.1" max="3" step="0.1" value="1.2">
+                <div class="value-display" id="pollutionDisplay">1.2 pollution/energy</div>
+            </div>
+        </div>
+        
+        <button onclick="runSimulation()">🚀 Run Energy System Simulation</button>
+        
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-value" id="peakEnergy">-</div>
+                <div>Peak Energy Production</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="peakEnergyYear">-</div>
+                <div>Peak Energy Year</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="depletionYear">-</div>
+                <div>Resource Depletion Year</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="totalPollution">-</div>
+                <div>Total Pollution Created</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="wastedResources">-</div>
+                <div>Resources Wasted as Heat</div>
+            </div>
+        </div>
+        
+        <div id="chartContainer">
+            <canvas id="chart"></canvas>
+        </div>
+        
+        <div class="explanation">
+            <strong>The Hubbert Peak Pattern:</strong> Energy production follows the classic bell curve - it grows exponentially as we develop better extraction 
+            technology and access easy resources, reaches a peak around 50% depletion, then declines exponentially as remaining resources become harder to extract.
+            <br><br>
+            <strong>The Growth Trap:</strong> Energy demand continues growing exponentially due to economic/population growth, but production peaks and then falls. 
+            The growing gap between demand and declining production creates economic and social crisis.
+            <br><br>
+            <strong>Key Insight:</strong> Even with improving technology, extraction follows physical limits. Easy resources get used first, 
+            then extraction becomes progressively more difficult and expensive. The peak is inevitable.
+            <br><br>
+            <strong>Try This:</strong> Notice how energy production grows exponentially, peaks, then declines while demand keeps growing exponentially. 
+            This gap is what causes civilizational stress in real resource depletion scenarios.
+        </div>
+    </div>
+
+    <script>
+        let chart = null;
+        
+        // Update display values
+        document.getElementById('initialResources').oninput = function() {
+            document.getElementById('resourcesDisplay').textContent = this.value + ' units';
+        };
+        
+        document.getElementById('energyDemand').oninput = function() {
+            document.getElementById('demandDisplay').textContent = this.value + ' units/year';
+        };
+        
+        document.getElementById('growthRate').oninput = function() {
+            document.getElementById('growthDisplay').textContent = (this.value * 100).toFixed(0) + '% per year';
+        };
+        
+        document.getElementById('efficiency').oninput = function() {
+            document.getElementById('efficiencyDisplay').textContent = (this.value * 100).toFixed(0) + '% efficient';
+        };
+        
+        document.getElementById('pollutionRate').oninput = function() {
+            document.getElementById('pollutionDisplay').textContent = this.value + ' pollution/energy';
+        };
+
+        function stdNormalDistribution (x, mu=0) {
+          return Math.E**(-((x-mu)**2)/2)/Math.sqrt(2*Math.PI);
+        }
+        
+        function runSimulation() {
+            const initialResources = parseFloat(document.getElementById('initialResources').value);
+            const initialEnergyDemand = parseFloat(document.getElementById('energyDemand').value);
+            const growthRate = parseFloat(document.getElementById('growthRate').value);
+            const efficiency = parseFloat(document.getElementById('efficiency').value);
+            const pollutionRate = parseFloat(document.getElementById('pollutionRate').value);
+            
+            let remainingResources = initialResources;
+            let currentEnergyDemand = initialEnergyDemand;
+            let totalPollution = 0;
+            let totalWastedResources = 0;
+            
+            const years = [];
+            const resourcesData = [];
+            const energyData = [];
+            const pollutionData = [];
+            const demandData = [];
+            
+            let peakEnergy = 0;
+            let peakEnergyYear = null;
+            let depletionYear = null;
+            
+            for (let year = 0; year <= 150; year++) {
+                years.push(year);
+                
+                // Calculate how much energy we can actually produce
+                const resourcesNeededForDemand = currentEnergyDemand / efficiency;
+                const resourcesAvailable = remainingResources;
+
+                // Extraction gets harder and more expensive the more we extract
+                // Easy resources get used first, then extraction becomes progressively more difficult and expensive.
+                const extractionRate = (resourcesAvailable / initialResources) * 0.3;
+
+                const actualResourcesUsed = Math.min((resourcesNeededForDemand*extractionRate), resourcesAvailable);
+                const actualEnergyProduced = actualResourcesUsed * efficiency;
+                
+                // Track peak energy production
+                if (actualEnergyProduced > peakEnergy) {
+                    peakEnergy = actualEnergyProduced;
+                    peakEnergyYear = year;
+                }
+                
+                // Resources are consumed (converted to energy + waste heat)
+                remainingResources = Math.max(0, remainingResources - actualResourcesUsed);
+                
+                // Calculate waste (inefficiency) and pollution
+                const wasteHeat = actualResourcesUsed - actualEnergyProduced;
+                const pollutionGenerated = actualEnergyProduced * pollutionRate;
+                
+                totalWastedResources += wasteHeat;
+                totalPollution += pollutionGenerated;
+                
+                // Record data
+                resourcesData.push(remainingResources);
+                energyData.push(actualEnergyProduced);
+                pollutionData.push(totalPollution);
+                demandData.push(currentEnergyDemand);
+                
+                // Check for resource depletion
+                if (depletionYear === null && remainingResources < 10) {
+                    depletionYear = year;
+                }
+                
+                // Energy demand grows exponentially (until resources can't keep up)
+                currentEnergyDemand = currentEnergyDemand * (1 + growthRate);
+                
+                // Stop if no resources left
+                if (remainingResources <= 0) break;
+            }
+            
+            // Update stats
+            document.getElementById('peakEnergy').textContent = Math.round(peakEnergy);
+            document.getElementById('peakEnergyYear').textContent = Math.round(peakEnergyYear);
+            document.getElementById('depletionYear').textContent = depletionYear || 'Never';
+            document.getElementById('totalPollution').textContent = Math.round(totalPollution);
+            document.getElementById('wastedResources').textContent = Math.round(totalWastedResources);
+            
+            // Create or update chart
+            const ctx = document.getElementById('chart').getContext('2d');
+            
+            if (chart) {
+                chart.destroy();
+            }
+            
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: years,
+                    datasets: [{
+                        label: 'Remaining Resources',
+                        data: resourcesData,
+                        borderColor: '#4ecdc4',
+                        backgroundColor: 'rgba(78, 205, 196, 0.1)',
+                        tension: 0.1,
+                        yAxisID: 'y',
+                        borderWidth: 3
+                    }, {
+                        label: 'Energy Demand',
+                        data: demandData,
+                        borderColor: '#f39c12',
+                        backgroundColor: 'rgba(243, 156, 18, 0.1)',
+                        tension: 0.1,
+                        yAxisID: 'y',
+                        borderDash: [5, 5]
+                    }, {
+                        label: 'Actual Energy Production',
+                        data: energyData,
+                        borderColor: '#ffce54',
+                        backgroundColor: 'rgba(255, 206, 84, 0.1)',
+                        tension: 0.1,
+                        yAxisID: 'y',
+                        borderWidth: 2
+                    }, {
+                        label: 'Cumulative Pollution',
+                        data: pollutionData,
+                        borderColor: '#e74c3c',
+                        backgroundColor: 'rgba(231, 76, 60, 0.1)',
+                        tension: 0.1,
+                        yAxisID: 'y1'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Resource Depletion, Energy Production, and Pollution Over Time',
+                            color: '#333',
+                            font: {
+                                size: 16,
+                                weight: 'bold'
+                            }
+                        },
+                        legend: {
+                            labels: {
+                                color: '#333'
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            display: true,
+                            title: {
+                                display: true,
+                                text: 'Years',
+                                color: '#333'
+                            },
+                            ticks: {
+                                color: '#333'
+                            }
+                        },
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'Resources & Energy',
+                                color: '#333'
+                            },
+                            ticks: {
+                                color: '#333'
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: 'Cumulative Pollution',
+                                color: '#e74c3c'
+                            },
+                            ticks: {
+                                color: '#e74c3c'
+                            },
+                            grid: {
+                                drawOnChartArea: false,
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Run initial simulation
+        runSimulation();
+    </script>
+</body>
+</html>
